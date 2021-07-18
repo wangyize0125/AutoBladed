@@ -9,5 +9,5 @@ git add .
 set /p message="Input log information: "
 git commit -m "%message%"
 
-git push origin HEAD:main
+git push origin master --force
 
