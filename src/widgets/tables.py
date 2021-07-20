@@ -161,6 +161,19 @@ class TableWidget(QTableWidget):
 
 		return selected
 
+	def update_status(self, success_flag: dict):
+		name_col = 0
+		for i in range(self.columnCount()):
+			if self.horizontalHeaderItem(i).text() == "Case_name":
+				name_col = i
+				break
+
+		for i in range(self.rowCount()):
+			if self.item(i, name_col).text() in success_flag.keys():
+				self.item(i, 0).setText(success_flag[self.item(i, name_col).text()])
+
+		return
+
 
 class TableWithButton(QWidget):
 	"""

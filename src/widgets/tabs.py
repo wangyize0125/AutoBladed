@@ -89,7 +89,7 @@ class TabWidget(QWidget):
 		self.btn_abort.setText("Abort")
 		self.btn_abort.setFixedSize(self.width() * 0.18, self.btn_abort.height())
 		self.btn_abort.move(self.width() * 0.82, base_height * space * 7.2)
-		# this button should be connect to a self-defined function
+		self.btn_abort.clicked.connect(self.stop_cases)
 		self.btn_abort.setVisible(False)
 
 		return
@@ -117,9 +117,6 @@ class TabWidget(QWidget):
 		run the cases in parallel
 		"""
 
-		# disable widgets on this page
-		self.set_calculating(True)
-
 		# get selected configs first
 		selected = self.table_with_btn.table.get_selected()
 
@@ -134,7 +131,11 @@ class TabWidget(QWidget):
 
 					# create the thread
 					self.run_cases_thread = RunCases(int(mt), alias_and_name, selected)
-					# self.run_cases_thread.one_case_finished_signal.connect(self.update_bar)
+					self.run_cases_thread.start_signal.connect(self.set_calculating)
+					self.run_cases_thread.one_case_started_signal.connect(self.one_case_started)
+					self.run_cases_thread.one_case_finished_signal.connect(self.update_bar)
+					self.run_cases_thread.finish_signal.connect(self.set_calculating)
+					self.run_cases_thread.one_case_aborted_signal.connect(self.one_case_aborted)
 					self.run_cases_thread.start()
 				else:
 					err = Error(self, "Alias in {} does not match the configurations".format(self.alias_and_name_file))
@@ -143,13 +144,24 @@ class TabWidget(QWidget):
 		else:
 			info = Information(self, "No case selected!")
 
-		# enable widgets on this page
-		self.set_calculating(False)
-
 		return
 
-	def update_bar(self, num_threads):
+	def update_bar(self, num_threads, success_flag: dict):
 		self.p_bar.setValue(self.p_bar.value() + self.bar_max / num_threads)
+
+		# change the success flag
+		self.table_with_btn.table.update_status(success_flag)
+
+	def stop_cases(self):
+		self.run_cases_thread.stop()
+
+	def one_case_started(self, status: dict):
+		# change the success flag
+		self.table_with_btn.table.update_status(status)
+
+	def one_case_aborted(self, status: dict):
+		# change the success flag
+		self.table_with_btn.table.update_status(status)
 
 
 class MinorTab(QTabWidget):
