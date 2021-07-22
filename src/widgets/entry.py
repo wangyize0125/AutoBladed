@@ -8,8 +8,10 @@ import os
 from PyQt5.QtWidgets import QWidget, QPushButton, QLineEdit, QFileDialog
 from PyQt5.QtCore import Qt
 
+from msg_boxes import Error
 from kernels import CasesConfig
 from widgets.tabs import MajorTab
+from exceptions import SheetNameError
 
 
 class Entry(QWidget):
@@ -35,6 +37,7 @@ class Entry(QWidget):
 		self.heads = []
 		self.items = []
 		self.case_configs = []
+		self.load_success = True
 
 		# widgets
 		self.btn_choose_file = QPushButton(self)
@@ -99,23 +102,6 @@ class Entry(QWidget):
 
 		return
 
-	def choose_folder(self):
-		# open folder
-		output_folder = QFileDialog.getExistingDirectory(self, "Choose Output Folder", os.getcwd())
-
-		if not output_folder:
-			pass
-		else:
-			self.update_folder(output_folder)
-
-		return
-
-	def update_folder(self, folder: str):
-		self.output_folder = folder					  # record
-		self.line_folder.setText(self.output_folder)  # show
-
-		return
-
 	def can_release_load(self, text: str):
 		if not self.btn_reload_file.isEnabled():
 			# when it is not enabled, this logic should be done
@@ -134,40 +120,88 @@ class Entry(QWidget):
 
 		return
 
+	def choose_folder(self):
+		# open folder
+		output_folder = QFileDialog.getExistingDirectory(self, "Choose Output Folder", os.getcwd())
+
+		if not output_folder:
+			pass
+		else:
+			self.update_folder(output_folder)
+
+		return
+
+	def update_folder(self, folder: str):
+		self.output_folder = folder					  # record
+		self.line_folder.setText(self.output_folder)  # show
+
+		return
+
 	def load_file(self):
 		# clear the change flag to avoid reload the file
 		self.config_file_changed = False
 
 		# load the configurations first
-		self.case_configs = CasesConfig(self.config_file)
-		self.case_configs.finished.connect(self.load_finished)
-		self.case_configs.start()
+		try:
+			self.case_configs = CasesConfig(self.config_file)
+			self.case_configs.finished.connect(self.load_finished)
+			self.case_configs.start()
+		except SheetNameError as exc:
+			self.load_success = False
+			err = Error(self, str(exc))
+		except Exception as exc:
+			self.load_success = False
+			err = Error(self, "Error when loading {}: {}".format(self.config_file, repr(exc)))
+		else:
+			self.load_success = True
 
 		return
 
 	def load_finished(self):
-		self.majors = self.case_configs.majors
-		self.minors = self.case_configs.minors
-		self.heads = self.case_configs.head
-		self.items = self.case_configs.items
-		self.case_configs = self.case_configs.cases_config
+		if self.load_success:
+			self.majors = self.case_configs.majors
+			self.minors = self.case_configs.minors
+			self.heads = self.case_configs.head
+			self.items = self.case_configs.items
+			self.case_configs = self.case_configs.cases_config
 
-		self.show_case()
+			self.show_case()
 
 		return
 
 	def show_case(self):
 		size = (self.width() * 0.96, self.height() * 0.98 - self.line_file.height() * 2.7)
+
 		# initialize and render
-		self.tabs = MajorTab(self.majors, self.minors, self, size)
+		self.tabs = MajorTab(self.majors, self.minors, self.output_folder, self, size)
+		self.tabs.start_signal.connect(self.start)
+		self.tabs.finish_signal.connect(self.finish)
 		for i in range(self.tabs.count()):
 			for j in range(self.tabs.widget(i).count()):
-				self.tabs.widget(i).widget(j).table_with_btn.table.set_head(self.case_configs[i][j][self.heads])
-				self.tabs.widget(i).widget(j).table_with_btn.table.set_items(self.case_configs[i][j][self.items])
+				self.tabs.widget(i).widget(j).table.table.set_head(self.case_configs[i][j][self.heads])
+				self.tabs.widget(i).widget(j).table.table.set_items(self.case_configs[i][j][self.items])
 
 		# ui setting for the tabs
 		self.tabs.move(int(self.width() * 0.02), int(self.line_file.height() * 2.7))
 		self.tabs.show()
+
+		return
+
+	def start(self):
+		self.btn_reload_file.setEnabled(False)
+		self.btn_choose_file.setEnabled(False)
+		self.btn_choose_folder.setEnabled(False)
+		self.line_file.setEnabled(False)
+		self.line_folder.setEnabled(False)
+
+		return
+
+	def finish(self):
+		self.btn_reload_file.setEnabled(True)
+		self.btn_choose_file.setEnabled(True)
+		self.btn_choose_folder.setEnabled(True)
+		self.line_file.setEnabled(True)
+		self.line_folder.setEnabled(True)
 
 		return
 

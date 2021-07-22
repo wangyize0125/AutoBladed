@@ -8,6 +8,8 @@ import numpy as np
 import pandas as pd
 from PyQt5.QtCore import QThread
 
+from exceptions import SheetNameError
+
 
 class CasesConfig(QThread):
 	"""
@@ -63,6 +65,9 @@ class CasesConfig(QThread):
 		sheets = raw_data.keys()
 		for sheet in sheets:
 			major_and_minor = sheet.split(".")
+			if len(major_and_minor) != 2:
+				raise SheetNameError(self.filename)
+
 			# loop for each sheet
 			idx = self.majors.index(major_and_minor[0].strip())
 			# append this sheet
@@ -87,7 +92,7 @@ class CasesConfig(QThread):
 			idx_minor = self.minors[idx_major].index(minor.strip())
 
 			head = value.columns
-			value = np.array(value)
+			value = np.array(value).tolist()
 			self.cases_config[idx_major][idx_minor] = {self.head: head, self.items: value}
 
 		return

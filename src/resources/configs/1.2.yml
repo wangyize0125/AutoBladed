@@ -1,7 +1,7 @@
 # left is the alias name in excel file and in the application
 # right is the real name in the Bladed project file
 
-Vhub: Wind Speed
-Yaw_error: Wind direction
-Random_seed: Wind seed
-Inflow_angle: Flow inclination
+Wind_file: WINDF
+Wind_direction_rad: WDIR
+Inflow_angle_rad: FLINC
+Vertical_shear: WSHEAR

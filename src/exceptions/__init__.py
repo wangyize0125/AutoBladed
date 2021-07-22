@@ -5,3 +5,5 @@
 # @Software: AutoBladed
 
 from .gui import GuiException
+from .errors import AliasNameNotFound, AliasNameParseError
+from .errors import	SheetNameError

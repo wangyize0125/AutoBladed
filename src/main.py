@@ -21,7 +21,7 @@ class AutoBladed(QMainWindow):
 		super(AutoBladed, self).__init__()
 
 		# window title
-		self.setWindowTitle("AutoBladed")
+		self.setWindowTitle(QApplication.applicationName())
 		# window icon
 		self.setWindowIcon(QIcon("./resources/images/logo.ico"))
 
@@ -33,14 +33,8 @@ class AutoBladed(QMainWindow):
 		# move to center
 		self.move((width - self.width()) // 2, (height - self.height()) // 2)
 
-		# # status bar
-		# self.status_bar = QStatusBar()
-		# self.setStatusBar(self.status_bar)
-
 		# widgets
 		self.main_tab = Entry(self, (self.width(), self.height()))
-		# self.main_tab.finish.connect(self.finish_bar)
-		# self.main_tab.start.connect(self.start_bar)
 
 		return
 
@@ -48,6 +42,7 @@ class AutoBladed(QMainWindow):
 if __name__ == "__main__":
 	# initialize an application instance
 	app = QApplication(sys.argv)
+	app.setApplicationName("AutoBladed")
 
 	app_gui = AutoBladed()
 	app_gui.show()
