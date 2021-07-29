@@ -37,7 +37,6 @@ class Entry(QWidget):
 		self.heads = []
 		self.items = []
 		self.case_configs = []
-		self.load_success = True
 
 		# widgets
 		self.btn_choose_file = QPushButton(self)
@@ -144,21 +143,15 @@ class Entry(QWidget):
 		# load the configurations first
 		try:
 			self.case_configs = CasesConfig(self.config_file)
-			self.case_configs.finished.connect(self.load_finished)
+			self.case_configs.finish_signal.connect(self.load_finished)
 			self.case_configs.start()
-		except SheetNameError as exc:
-			self.load_success = False
-			err = Error(self, str(exc))
 		except Exception as exc:
-			self.load_success = False
 			err = Error(self, "Error when loading {}: {}".format(self.config_file, repr(exc)))
-		else:
-			self.load_success = True
 
 		return
 
-	def load_finished(self):
-		if self.load_success:
+	def load_finished(self, flag: bool, msg: str):
+		if flag:
 			self.majors = self.case_configs.majors
 			self.minors = self.case_configs.minors
 			self.heads = self.case_configs.head
@@ -166,6 +159,8 @@ class Entry(QWidget):
 			self.case_configs = self.case_configs.cases_config
 
 			self.show_case()
+		else:
+			err = Error(self, "Error when loading {}: {}".format(self.config_file, msg))
 
 		return
 

@@ -8,7 +8,7 @@ import os
 import yaml
 from PyQt5 import QtGui
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtWidgets import QTabWidget, QWidget, QFileDialog
+from PyQt5.QtWidgets import QTabWidget, QWidget, QFileDialog, QApplication
 from PyQt5.QtWidgets import QLabel, QLineEdit, QPushButton, QProgressBar
 
 from msg_boxes import Error

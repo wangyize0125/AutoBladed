@@ -241,7 +241,7 @@ class TableWithButton(QWidget):
 		ui settings of the buttons
 		"""
 
-		self.table.setFixedSize(int(self.width() * 0.8), self.height())
+		self.table.setFixedSize(int(self.width() * 0.8), int(self.height() * 0.9))
 		self.table.move(0, 0)
 
 		button_width = self.width() * 0.17

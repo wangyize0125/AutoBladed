@@ -6,7 +6,7 @@
 
 import numpy as np
 import pandas as pd
-from PyQt5.QtCore import QThread
+from PyQt5.QtCore import QThread, pyqtSignal
 
 from exceptions import SheetNameError
 
@@ -19,6 +19,8 @@ class CasesConfig(QThread):
 
 	head = "head"
 	items = "items"
+
+	finish_signal = pyqtSignal(bool, str)
 
 	def __init__(self, filename: str):
 		super(CasesConfig, self).__init__()
@@ -39,11 +41,16 @@ class CasesConfig(QThread):
 		# parse majors of the cases
 		self.parse_majors(raw_data)
 
-		# parse minors of the cases
-		self.parse_minors(raw_data)
+		try:
+			# parse minors of the cases
+			self.parse_minors(raw_data)
+		except Exception as exc:
+			self.finish_signal.emit(False, str(exc))
+		else:
+			# parse configurations
+			self.parse_configs(raw_data)
 
-		# parse configurations
-		self.parse_configs(raw_data)
+			self.finish_signal.emit(True, "Successful")
 
 		return
 

@@ -135,16 +135,28 @@ class RunOneCase(QThread):
 		try:
 			# change the values
 			var_values[var_names.index("PATH")] = self.result_folder			# change path
+			if " " in self.result_folder:
+				raise Exception("Space detected in {}".format(self.result_folder))
 			for alias, name in self.alias_and_name.items():
 				var_values[var_names.index(name)] = self.alias_and_value[alias]
+				if " " in self.alias_and_value[alias]:
+					raise Exception("Space detected in {}".format(self.alias_and_value[alias]))
 		except Exception as exc:
 			self.log_file.write("{} (When substituting values in DTBLADED.IN): {}\n".format(self.case_name, repr(exc)))
 			return False
 
+		pj_file = None
 		# re-write the file
 		with open(self.bladed_file, "w") as file:
 			for name, value in zip(var_names, var_values):
 				file.write(name + "\t" + value + "\n")
+
+				if name == "RUNNAME":
+					pj_file = os.path.join(self.result_folder, "{}.$PJ".format(value))
+
+		pj_file = open(pj_file, "w")
+		pj_file.write("# USE FOR POST-PROCESS")
+		pj_file.close()
 
 		return True
 
